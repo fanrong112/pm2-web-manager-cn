@@ -1,5 +1,5 @@
 {
-  "name": "ezpm2gui",
+  "name": "pm2-web-manager-cn",
   "version": "1.8.0",
   "main": "dist/server/index.js",
   "bin": {
@@ -37,13 +37,13 @@
     "process-manager",
     "dashboard"
   ],
-  "author": "Chandan Bhagat",
+  "author": "fanrong112 <334229640@qq.com> (Original: Chandan Bhagat)",
   "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thechandanbhagat/ezpm2gui.git"
+    "url": "git+https://github.com/fanrong112/pm2-web-manager-cn.git"
   },
-  "description": "A modern web-based GUI for PM2 process manager",
+  "description": "A modern web-based GUI for PM2 process manager (Chinese Enhanced Edition for Windows)",
   "files": [
     "dist/",
     "bin/",
