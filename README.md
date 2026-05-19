@@ -64,7 +64,7 @@ cd src/client && npm install && cd ../..
 npm run build
 npm start
 ```
-默认会在 `http://localhost:3002` 启动 Web 服务。
+默认会在 `http://localhost:3101` 启动 Web 服务。
 
 ---
 
