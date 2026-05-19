@@ -81,9 +81,9 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
       {/* ── Page header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Process Dashboard</h1>
+          <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">进程管理面板</h1>
           <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-            Monitor and manage your PM2 processes in real-time
+            实时监控与管理您的 PM2 进程
           </p>
         </div>
       </div>
@@ -96,7 +96,7 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
           icon={CheckCircleIcon}
           iconColor="text-green-500"
           iconBg="bg-green-500/10"
-          label="Online"
+          label="运行中"
           value={online}
           total={processes.length}
         />
@@ -104,21 +104,21 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
           icon={XCircleIcon}
           iconColor="text-red-500"
           iconBg="bg-red-500/10"
-          label="Stopped"
+          label="已停止"
           value={stopped}
         />
         <ProcessStatCard
           icon={ExclamationCircleIcon}
           iconColor="text-yellow-500"
           iconBg="bg-yellow-500/10"
-          label="Errored"
+          label="异常报错"
           value={errored}
         />
         <ProcessStatCard
           icon={Squares2X2Icon}
           iconColor="text-primary-500"
           iconBg="bg-primary-500/10"
-          label="Total"
+          label="总进程"
           value={processes.length}
         />
 
@@ -135,7 +135,7 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
             <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400 dark:text-neutral-500 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search processes by name or ID..."
+              placeholder="通过名称或 ID 搜索进程..."
               value={searchTerm}
               onChange={onSearchChange}
               className="w-full pl-8 pr-3 py-1.5 border border-neutral-300 dark:border-neutral-700 rounded-md text-xs
@@ -158,7 +158,7 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
                            focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500
                            cursor-pointer transition-colors"
               >
-                <option value="all">All Namespaces</option>
+                <option value="all">所有命名空间</option>
                 {namespaces.map(ns => (
                   <option key={ns} value={ns}>{ns}</option>
                 ))}
@@ -177,10 +177,10 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
                          focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500
                          cursor-pointer transition-colors"
             >
-              <option value="all">All Processes</option>
-              <option value="online">Online Only</option>
-              <option value="stopped">Stopped Only</option>
-              <option value="errored">Errored Only</option>
+              <option value="all">所有状态</option>
+              <option value="online">仅运行中</option>
+              <option value="stopped">仅已停止</option>
+              <option value="errored">仅异常报错</option>
             </select>
           </div>
         </div>

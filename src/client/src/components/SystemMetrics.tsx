@@ -63,14 +63,14 @@ const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
         icon={ClockIcon}
         iconColor="text-blue-500"
         iconBg="bg-blue-500/10"
-        label="System Uptime"
+        label="系统运行时间"
         value={formatUptime(metrics.uptime)}
       />
       <StatCard
         icon={CpuChipIcon}
         iconColor="text-violet-500"
         iconBg="bg-violet-500/10"
-        label="Load Avg"
+        label="系统负载"
         value={metrics.loadAvg[0].toFixed(2)}
         sub={
           <p className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-none">
@@ -82,7 +82,7 @@ const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
         icon={CircleStackIcon}
         iconColor={memPct > 80 ? 'text-red-500' : memPct > 60 ? 'text-yellow-500' : 'text-green-500'}
         iconBg={memPct > 80 ? 'bg-red-500/10' : memPct > 60 ? 'bg-yellow-500/10' : 'bg-green-500/10'}
-        label="Memory"
+        label="内存占用"
         value={`${formatMemory(metrics.memory.used)} / ${formatMemory(metrics.memory.total)}`}
         sub={
           <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-1 mt-1">
@@ -94,7 +94,7 @@ const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => {
         icon={ServerStackIcon}
         iconColor="text-neutral-500"
         iconBg="bg-neutral-100 dark:bg-neutral-800"
-        label="CPU Cores"
+        label="CPU 核心数"
         value={String(metrics.cpus)}
       />
     </>

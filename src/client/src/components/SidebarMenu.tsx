@@ -75,7 +75,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
         }));
 
         const groups: SidebarServerGroup[] = [
-          { serverId: 'local', serverName: 'Local Server', isRemote: false, connected: true, processes: localProcesses, loading: false },
+          { serverId: 'local', serverName: '本地服务器', isRemote: false, connected: true, processes: localProcesses, loading: false },
         ];
 
         const connections: any[] = remoteRes.data;
@@ -140,16 +140,16 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
 
   // @group Navigation : Menu items configuration
   const menuItems = [
-    { label: 'Processes',            path: '/processes',          icon: ChartBarIcon },
-    { label: 'Logs',                 path: '/logs',               icon: ChartPieIcon },
-    { label: 'Remote Servers',       path: '/remote',             icon: CloudIcon },
-    { label: 'Metrics',               path: '/metrics',            icon: CpuChipIcon },
-    { label: 'Deploy App',           path: '/deploy',             icon: PlusIcon },
-    { label: 'PM2 Modules',          path: '/modules',            icon: PuzzlePieceIcon },
-    { label: 'Ecosystem Config',     path: '/ecosystem',          icon: DocumentTextIcon },
-    { label: 'Cluster',             path: '/cluster',            icon: ServerStackIcon },
-    { label: 'Cron Jobs',            path: '/cron-jobs',          icon: ClockIcon },
-    { label: 'Load Balancing',       path: '/load-balancing-guide', icon: ScaleIcon },
+    { label: '进程管理',            path: '/processes',          icon: ChartBarIcon },
+    { label: '实时日志',                 path: '/logs',               icon: ChartPieIcon },
+    { label: '远程服务器',       path: '/remote',             icon: CloudIcon },
+    { label: '性能监控',               path: '/metrics',            icon: CpuChipIcon },
+    { label: '部署应用',           path: '/deploy',             icon: PlusIcon },
+    { label: 'PM2模块',          path: '/modules',            icon: PuzzlePieceIcon },
+    { label: '生态配置',     path: '/ecosystem',          icon: DocumentTextIcon },
+    { label: '集群管理',             path: '/cluster',            icon: ServerStackIcon },
+    { label: '定时任务',            path: '/cron-jobs',          icon: ClockIcon },
+    { label: '负载均衡',       path: '/load-balancing-guide', icon: ScaleIcon },
   ];
 
   // @group Render : Sidebar layout with sections
@@ -160,7 +160,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
       <nav className="px-1.5 py-2 overflow-x-hidden shrink-0">
         {!collapsed && (
           <p className="px-1.5 mb-1 text-xs font-semibold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest whitespace-nowrap">
-            Management
+            系统管理
           </p>
         )}
 
@@ -199,7 +199,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
       {!collapsed && (
         <div className="flex-1 min-h-0 flex flex-col border-t border-neutral-100 dark:border-neutral-800">
           <p className="px-3 pt-2 pb-1 text-xs font-semibold text-neutral-400 dark:text-neutral-600 uppercase tracking-widest shrink-0">
-            Processes
+            运行进程
           </p>
           <div className="flex-1 overflow-y-auto">
             {treeLoading && serverGroups.length === 0 ? (
@@ -239,11 +239,11 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
                     {expanded && (
                       <div className="pb-0.5">
                         {!group.connected ? (
-                          <p className="pl-8 pr-2 py-1 text-xs text-neutral-400 italic">Not connected</p>
+                          <p className="pl-8 pr-2 py-1 text-xs text-neutral-400 italic">未连接</p>
                         ) : group.loading ? (
-                          <p className="pl-8 pr-2 py-1 text-xs text-neutral-400 animate-pulse">Loading...</p>
+                          <p className="pl-8 pr-2 py-1 text-xs text-neutral-400 animate-pulse">加载中...</p>
                         ) : group.processes.length === 0 ? (
-                          <p className="pl-8 pr-2 py-1 text-xs text-neutral-400 italic">No processes</p>
+                          <p className="pl-8 pr-2 py-1 text-xs text-neutral-400 italic">无进程</p>
                         ) : (
                           group.processes.map(proc => {
                             const remoteMatch = currentPath.startsWith('/logs/remote/');

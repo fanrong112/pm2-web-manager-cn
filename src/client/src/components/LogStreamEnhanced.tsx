@@ -107,27 +107,40 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
     };
     fetchLogs();
 
-    // Live streaming only for local processes
-    if (serverId === 'local') {
-      const socket = io(API_URL, { transports: ['websocket', 'polling'], reconnection: true });
-      socketRef.current = socket;
+    // Support live streaming for both local and remote processes
+    const socket = io(API_URL, { transports: ['websocket', 'polling'], reconnection: true });
+    socketRef.current = socket;
 
-      socket.on('connect', () => {
+    socket.on('connect', () => {
+      if (serverId === 'local') {
         socket.emit('subscribe-logs', { processId: initPid, logType: selectedLogType });
-        setIsStreaming(true);
-      });
+      } else {
+        socket.emit('subscribe-remote-logs', { connectionId: serverId, processId: initPid });
+      }
+      setIsStreaming(true);
+    });
 
-      socket.on('log-line', (data) => {
-        if (data.processId === initPid && data.logType === selectedLogType) {
-          setLogs(prev => [...prev, data.line]);
-        }
-      });
+    socket.on('log-line', (data) => {
+      if (serverId === 'local' && data.processId === initPid && data.logType === selectedLogType) {
+        setLogs(prev => [...prev, data.line]);
+      }
+    });
 
-      return () => {
+    socket.on('remote-log-line', (data) => {
+      const mappedType = data.logType === 'stdout' ? 'out' : data.logType === 'stderr' ? 'err' : data.logType;
+      if (serverId !== 'local' && data.connectionId === serverId && Number(data.processId) === initPid && mappedType === selectedLogType) {
+        setLogs(prev => [...prev, data.line]);
+      }
+    });
+
+    return () => {
+      if (serverId === 'local') {
         socket.emit('unsubscribe-logs', { processId: initPid, logType: selectedLogType });
-        socket.disconnect();
-      };
-    }
+      } else {
+        socket.emit('unsubscribe-remote-logs', { connectionId: serverId, processId: initPid });
+      }
+      socket.disconnect();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initPid, serverId, selectedLogType]);
 
@@ -139,9 +152,14 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
   }, [logs, followLogs]);
 
   const toggleStreaming = () => {
-    if (initPid === null || serverId !== 'local') return;
-    const ev = isStreaming ? 'unsubscribe-logs' : 'subscribe-logs';
-    socketRef.current?.emit(ev, { processId: initPid, logType: selectedLogType });
+    if (initPid === null) return;
+    if (serverId === 'local') {
+      const ev = isStreaming ? 'unsubscribe-logs' : 'subscribe-logs';
+      socketRef.current?.emit(ev, { processId: initPid, logType: selectedLogType });
+    } else {
+      const ev = isStreaming ? 'unsubscribe-remote-logs' : 'subscribe-remote-logs';
+      socketRef.current?.emit(ev, { connectionId: serverId, processId: initPid });
+    }
     setIsStreaming(p => !p);
   };
 
@@ -184,11 +202,11 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
   return (
     <div>
       <PageHeader
-        title="Log Streaming"
+        title="实时日志"
         subtitle={
           processName
-            ? `${isRemoteRoute ? `Remote · ${serverId}` : 'Local'} — ${processName}`
-            : 'Select a process from the sidebar'
+            ? `${isRemoteRoute ? `远程 · ${serverId}` : '本地'} — ${processName}`
+            : '请从侧边栏选择一个进程'
         }
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -201,11 +219,10 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
                          text-neutral-900 dark:text-neutral-100
                          focus:outline-none focus:ring-1 focus:ring-primary-500"
             >
-              <option value="out">Standard out</option>
-              <option value="err">Standard err</option>
+              <option value="out">标准输出 (out)</option>
+              <option value="err">错误日志 (err)</option>
             </select>
 
-            {serverId === 'local' && (
               <button
                 onClick={toggleStreaming}
                 disabled={initPid === null}
@@ -215,9 +232,8 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
                               ? 'border-red-500 text-red-500 hover:bg-red-500/10'
                               : 'border-primary-500 text-primary-500 hover:bg-primary-500/10'}`}
               >
-                {isStreaming ? 'Stop Stream' : 'Live Stream'}
+                {isStreaming ? '停止推送' : '实时监听'}
               </button>
-            )}
           </div>
         }
       />
@@ -228,7 +244,7 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
           <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Filter logs..."
+            placeholder="过滤日志..."
             value={filter}
             onChange={e => setFilter(e.target.value)}
             className="w-full h-8 pl-8 pr-3 text-xs rounded border
@@ -248,31 +264,31 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
                           ? 'bg-primary-600 border-primary-600 text-white'
                           : 'border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
           >
-            Auto-scroll
+            自动滚动
           </button>
 
           {isStreaming && (
             <span className="flex items-center gap-1 px-2 text-xs text-emerald-500">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              live
+              实时中
             </span>
           )}
 
-          <button onClick={refreshLogs} title="Refresh"
+          <button onClick={refreshLogs} title="刷新"
             className="h-8 w-8 flex items-center justify-center rounded border
                        border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400
                        hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
             <ArrowPathIcon className="h-3.5 w-3.5" />
           </button>
 
-          <button onClick={() => setLogs([])} title="Clear"
+          <button onClick={() => setLogs([])} title="清空"
             className="h-8 w-8 flex items-center justify-center rounded border
                        border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400
                        hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
             <XMarkIcon className="h-3.5 w-3.5" />
           </button>
 
-          <button onClick={downloadLogs} disabled={initPid === null || logs.length === 0} title="Download"
+          <button onClick={downloadLogs} disabled={initPid === null || logs.length === 0} title="下载"
             className="h-8 w-8 flex items-center justify-center rounded border
                        border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400
                        hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors
@@ -300,7 +316,7 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
           </div>
         ) : initPid === null ? (
           <div className="flex items-center justify-center h-64 text-xs text-neutral-400 dark:text-neutral-500">
-            Select a process from the sidebar to view logs
+            请从侧边栏选择一个进程以查看日志
           </div>
         ) : (
           <div
@@ -308,7 +324,7 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
             className="h-[calc(100vh-16rem)] overflow-y-auto bg-neutral-950 p-3 font-mono text-xs leading-relaxed"
           >
             {filteredLogs.length === 0 ? (
-              <span className="text-neutral-600 italic">No logs available</span>
+              <span className="text-neutral-600 italic">暂无日志记录</span>
             ) : (
               filteredLogs.map((line, i) => (
                 <div key={i} className={`whitespace-pre-wrap break-all ${lineColor(selectedLogType, line)}`}>

@@ -36,7 +36,7 @@ const ServerSwitcher: React.FC<ServerSwitcherProps> = ({
 
   // @group Derived : Active server display info
   const activeConn = connections.find(c => c.id === activeServerId);
-  const activeLabel = activeServerId === 'local' ? 'Local' : (activeConn?.name || 'Remote');
+  const activeLabel = activeServerId === 'local' ? '本地服务器' : (activeConn?.name || '远程服务器');
   const isConnected = activeServerId === 'local' || (activeConn?.connected ?? false);
 
   return (
@@ -50,7 +50,7 @@ const ServerSwitcher: React.FC<ServerSwitcherProps> = ({
                      ? 'border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
                      : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'
                    }`}
-        title="Switch active server"
+        title="切换服务器"
       >
         {/* Connection status dot */}
         <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
@@ -81,7 +81,7 @@ const ServerSwitcher: React.FC<ServerSwitcherProps> = ({
           >
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="font-medium">Local</div>
+              <div className="font-medium">本地服务器</div>
               <div className={`text-xs ${darkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
                 localhost
               </div>
@@ -96,7 +96,7 @@ const ServerSwitcher: React.FC<ServerSwitcherProps> = ({
               <div className={`my-1 border-t ${darkMode ? 'border-neutral-700' : 'border-neutral-100'}`} />
               <p className={`px-3 py-1 text-xs uppercase tracking-wider font-semibold
                             ${darkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                Remote Servers
+                远程服务器
               </p>
 
               {connections.map(c => (

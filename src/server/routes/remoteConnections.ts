@@ -566,32 +566,43 @@ router.get('/:connectionId/logs/:processId', async (req, res) => {
       stdout: [],
       stderr: []
     };    // Fetch stdout logs
+    // Fetch stdout logs
     if (outLogPath) {
-      let outResult = await connection.executeCommand(`tail -n 100 "${outLogPath}" 2>/dev/null || echo ""`);
+      let outResult = await connection.executeCommand(`tail -n 100 "${outLogPath}" 2>/dev/null`);
       
       // If failed, try with sudo
       if (outResult.code !== 0 || !outResult.stdout.trim()) {
-        console.log(`Failed to read ${outLogPath}, trying with sudo`);
-        outResult = await connection.executeCommand(`sudo tail -n 100 "${outLogPath}" 2>/dev/null || echo ""`);
+        outResult = await connection.executeCommand(`sudo tail -n 100 "${outLogPath}" 2>/dev/null`);
+      }
+
+      // Windows PowerShell Fallback
+      if (outResult.code !== 0 || !outResult.stdout.trim() || (outResult.stderr && outResult.stderr.includes('tail'))) {
+        const cleanPath = outLogPath.replace(/\\/g, '/');
+        outResult = await connection.executeCommand(`powershell -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; if (Test-Path '${cleanPath}') { Get-Content -Encoding UTF8 -Tail 100 -Path '${cleanPath}' }"`);
       }
       
       if (outResult.code === 0 && outResult.stdout.trim()) {
-        logs.stdout = outResult.stdout.trim().split('\n').filter(line => line.trim());
+        logs.stdout = outResult.stdout.split('\n').map(line => line.trim()).filter(line => line);
       }
     }
 
     // Fetch stderr logs
     if (errLogPath) {
-      let errResult = await connection.executeCommand(`tail -n 100 "${errLogPath}" 2>/dev/null || echo ""`);
+      let errResult = await connection.executeCommand(`tail -n 100 "${errLogPath}" 2>/dev/null`);
       
       // If failed, try with sudo
       if (errResult.code !== 0 || !errResult.stdout.trim()) {
-        console.log(`Failed to read ${errLogPath}, trying with sudo`);
-        errResult = await connection.executeCommand(`sudo tail -n 100 "${errLogPath}" 2>/dev/null || echo ""`);
+        errResult = await connection.executeCommand(`sudo tail -n 100 "${errLogPath}" 2>/dev/null`);
+      }
+
+      // Windows PowerShell Fallback
+      if (errResult.code !== 0 || !errResult.stdout.trim() || (errResult.stderr && errResult.stderr.includes('tail'))) {
+        const cleanPath = errLogPath.replace(/\\/g, '/');
+        errResult = await connection.executeCommand(`powershell -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; if (Test-Path '${cleanPath}') { Get-Content -Encoding UTF8 -Tail 100 -Path '${cleanPath}' }"`);
       }
       
       if (errResult.code === 0 && errResult.stdout.trim()) {
-        logs.stderr = errResult.stdout.trim().split('\n').filter(line => line.trim());
+        logs.stderr = errResult.stdout.split('\n').map(line => line.trim()).filter(line => line);
       }
     }
 
@@ -649,12 +660,36 @@ router.get('/:connectionId/logs/:processId/:type', async (req, res) => {
 
     // tail -n 0 = all lines; use wc -l to get total count alongside
     const lineArg = lines === 0 ? '+1' : `-${lines}`;
-    const cmd = `{ wc -l < "${logPath}" 2>/dev/null || echo 0; } && tail -n ${lineArg} "${logPath}" 2>/dev/null`;
+    const cmd = `{ wc -l < "${logPath}" 2>/dev/null; } && tail -n ${lineArg} "${logPath}" 2>/dev/null`;
     let result = await connection.executeCommand(cmd);
 
     // Fallback to sudo if the file is unreadable (root-owned logs)
     if (result.code !== 0 || !result.stdout.trim()) {
-      result = await connection.executeCommand(`{ sudo wc -l < "${logPath}" 2>/dev/null || echo 0; } && sudo tail -n ${lineArg} "${logPath}" 2>/dev/null`);
+      result = await connection.executeCommand(`{ sudo wc -l < "${logPath}" 2>/dev/null; } && sudo tail -n ${lineArg} "${logPath}" 2>/dev/null`);
+    }
+
+    // Windows PowerShell Fallback for remote Windows servers
+    if (result.code !== 0 || !result.stdout.trim() || (result.stderr && (result.stderr.includes('tail') || result.stderr.includes('wc')))) {
+      const cleanPath = logPath.replace(/\\/g, '/');
+      const countCmd = `powershell -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; if (Test-Path '${cleanPath}') { (Get-Content -Encoding UTF8 -Path '${cleanPath}').Count } else { 0 }"`;
+      const tailCmd = lines === 0 
+        ? `powershell -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; if (Test-Path '${cleanPath}') { Get-Content -Encoding UTF8 -Path '${cleanPath}' }"`
+        : `powershell -Command "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; if (Test-Path '${cleanPath}') { Get-Content -Encoding UTF8 -Tail ${lines} -Path '${cleanPath}' }"`;
+      
+      const [countRes, tailRes] = await Promise.all([
+        connection.executeCommand(countCmd).catch(() => ({ code: 1, stdout: '0', stderr: '' })),
+        connection.executeCommand(tailCmd).catch(() => ({ code: 1, stdout: '', stderr: '' }))
+      ]);
+      
+      if (tailRes.code === 0) {
+        const total = parseInt(countRes.stdout.trim() || '0', 10);
+        const linesList = tailRes.stdout.split('\n').map(line => line.trim()).filter(line => line);
+        result = {
+          code: 0,
+          stdout: `${total}\n${linesList.join('\n')}`,
+          stderr: ''
+        };
+      }
     }
 
     const outputLines = result.stdout.split('\n');

@@ -153,3 +153,5 @@ update-windows-hosts.ps1
 excluded/
 install-windows-service.js
 .env
+# Remote connections configuration (contains sensitive data)
+src/server/config/remote-connections.json

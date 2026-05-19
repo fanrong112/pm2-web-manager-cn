@@ -195,7 +195,6 @@ export class RemoteConnection extends EventEmitter {
         let stdout = '';
         let stderr = '';
         let exitCode: number | null = null;
-
         channel.on('data', (data: Buffer) => {
           stdout += data.toString();
         });
@@ -567,6 +566,11 @@ export class RemoteConnection extends EventEmitter {
         pid:   proc.pid   || 0,
         pm_id: proc.pm_id || 0,
         name:  proc.name  || '',
+        status: proc.pm2_env?.status || 'unknown',
+        cpu: proc.monit ? (proc.monit.cpu || 0) : 0,
+        memory: proc.monit ? this.formatMemory(proc.monit.memory || 0) : '0 B',
+        uptime: proc.pm2_env?.pm_uptime ? this.formatUptime(proc.pm2_env.pm_uptime) : 'N/A',
+        restarts: proc.pm2_env?.restart_time || 0,
         monit: {
           cpu:    proc.monit ? (proc.monit.cpu    || 0) : 0,
           memory: proc.monit ? (proc.monit.memory || 0) : 0,

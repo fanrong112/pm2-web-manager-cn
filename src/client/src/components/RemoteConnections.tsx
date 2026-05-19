@@ -508,24 +508,24 @@ const RemoteConnections: React.FC = () => {
       {/* Page header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-200 dark:border-neutral-800">
         <div>
-          <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 leading-tight">Remote Connections</h1>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Manage SSH connections and remote PM2 processes</p>
+          <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 leading-tight">远程服务器</h1>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">管理 SSH 连接与远程 PM2 进程</p>
         </div>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {connections.some(c => !c.connected) && (
             <Button variant="outlined" size="small" startIcon={<PlayIcon />}
               onClick={handleConnectAll} disabled={Object.values(loading).some(l => l)}>
-              Connect All
+              连接全部
             </Button>
           )}
           {connections.some(c => c.connected) && (
             <Button variant="outlined" size="small" startIcon={<StopIcon />}
               onClick={handleDisconnectAll} disabled={Object.values(loading).some(l => l)}>
-              Disconnect All
+              断开全部
             </Button>
           )}
           <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenDialog(true)}>
-            Add Connection
+            添加连接
           </Button>
         </Box>
       </div>
@@ -541,7 +541,7 @@ const RemoteConnections: React.FC = () => {
           <Grid item xs={12}>
             <Paper variant="outlined" sx={{ p: 3, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                No remote connections configured. Click "Add Connection" to get started.
+                尚未配置远程连接。点击“添加连接”开始使用。
               </Typography>
             </Paper>
           </Grid>
@@ -555,7 +555,7 @@ const RemoteConnections: React.FC = () => {
                     {connection.name}
                   </Typography>
                   <Chip
-                    label={connection.connected ? 'Connected' : 'Disconnected'}
+                    label={connection.connected ? '已连接' : '未连接'}
                     color={connection.connected ? 'success' : 'default'}
                     size="small"
                   />
@@ -577,14 +577,14 @@ const RemoteConnections: React.FC = () => {
                       </IconButton>
                       <Button variant="outlined" size="small"
                         onClick={() => handleDisconnect(connection.id)} disabled={loading[connection.id]}>
-                        Disconnect
+                        断开连接
                       </Button>
                     </>
                   ) : (
                     <Button variant="contained" size="small"
                       onClick={() => handleConnect(connection.id)} disabled={loading[connection.id]}
                       startIcon={loading[connection.id] ? <CircularProgress size={12} /> : undefined}>
-                      Connect
+                      连接
                     </Button>
                   )}
                   <IconButton size="small" onClick={() => openEditDialog(connection)}>
@@ -601,8 +601,8 @@ const RemoteConnections: React.FC = () => {
                 <Box>
                   <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}
                     sx={{ px: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <Tab label="Processes" />
-                    <Tab label="System Info" />
+                    <Tab label="应用进程" />
+                    <Tab label="系统信息" />
                   </Tabs>
 
                   {/* Processes tab */}
@@ -613,22 +613,22 @@ const RemoteConnections: React.FC = () => {
                       </Box>
                     ) : processes[connection.id] === undefined ? (
                       <Typography variant="body2" color="text.secondary">
-                        Click refresh to load processes.
+                        点击刷新加载进程。
                       </Typography>
                     ) : processes[connection.id].length === 0 ? (
                       <Typography variant="body2" color="text.secondary">
-                        No PM2 processes running on this server.
+                        该服务器上没有运行的 PM2 进程。
                       </Typography>
                     ) : (
                       <Table size="small">
                         <TableHead>
                           <TableRow>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Status</TableCell>
+                            <TableCell>名称</TableCell>
+                            <TableCell>状态</TableCell>
                             <TableCell>CPU</TableCell>
-                            <TableCell>Memory</TableCell>
-                            <TableCell>Uptime</TableCell>
-                            <TableCell>Actions</TableCell>
+                            <TableCell>内存</TableCell>
+                            <TableCell>运行时间</TableCell>
+                            <TableCell>操作</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -672,12 +672,12 @@ const RemoteConnections: React.FC = () => {
                     {systemInfo[connection.id] ? (
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>System Information</Typography>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>系统信息</Typography>
                           {[
-                            ['Hostname',     systemInfo[connection.id].hostname],
-                            ['Platform',     systemInfo[connection.id].platform],
-                            ['Architecture', systemInfo[connection.id].arch],
-                            ['Node.js',      systemInfo[connection.id].nodeVersion],
+                            ['主机名',     systemInfo[connection.id].hostname],
+                            ['操作系统',     systemInfo[connection.id].platform],
+                            ['系统架构', systemInfo[connection.id].arch],
+                            ['Node 版本',      systemInfo[connection.id].nodeVersion],
                           ].map(([label, value]) => (
                             <Box key={label} sx={{ display: 'flex', gap: 1, mb: 0.5 }}>
                               <Typography variant="caption" color="text.secondary" sx={{ minWidth: 90 }}>{label}:</Typography>
@@ -686,12 +686,12 @@ const RemoteConnections: React.FC = () => {
                           ))}
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Resources</Typography>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>硬件资源</Typography>
                           {[
-                            ['Total Memory', systemInfo[connection.id].totalMemory],
-                            ['Free Memory',  systemInfo[connection.id].freeMemory],
-                            ['CPU Count',    systemInfo[connection.id].cpuCount],
-                            ['Load Average', systemInfo[connection.id].loadAverage?.join(', ')],
+                            ['总内存', systemInfo[connection.id].totalMemory],
+                            ['可用内存',  systemInfo[connection.id].freeMemory],
+                            ['CPU 核心数',    systemInfo[connection.id].cpuCount],
+                            ['系统负载', systemInfo[connection.id].loadAverage?.join(', ')],
                           ].map(([label, value]) => (
                             <Box key={label} sx={{ display: 'flex', gap: 1, mb: 0.5 }}>
                               <Typography variant="caption" color="text.secondary" sx={{ minWidth: 90 }}>{label}:</Typography>
@@ -701,7 +701,7 @@ const RemoteConnections: React.FC = () => {
                         </Grid>
                       </Grid>
                     ) : (
-                      <Typography variant="body2" color="text.secondary">No system info available.</Typography>
+                      <Typography variant="body2" color="text.secondary">暂无系统信息。</Typography>
                     )}
                   </TabPanel>
                 </Box>
@@ -713,13 +713,13 @@ const RemoteConnections: React.FC = () => {
 
       {/* Add/Edit Connection Dialog */}
       <Dialog open={openDialog} onClose={handleDialogClose} maxWidth="md" fullWidth>
-        <DialogTitle>{editingConnection ? 'Edit Remote Connection' : 'Add Remote Connection'}</DialogTitle>
+        <DialogTitle>{editingConnection ? '编辑远程连接' : '添加远程连接'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Connection Name"
+                label="连接名称"
                 value={connectionForm.name}
                 onChange={(e) => setConnectionForm(prev => ({ ...prev, name: e.target.value }))}
               />
@@ -727,7 +727,7 @@ const RemoteConnections: React.FC = () => {
             <Grid item xs={12} md={8}>
               <TextField
                 fullWidth
-                label="Host"
+                label="主机 IP"
                 value={connectionForm.host}
                 onChange={(e) => setConnectionForm(prev => ({ ...prev, host: e.target.value }))}
               />
@@ -735,7 +735,7 @@ const RemoteConnections: React.FC = () => {
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Port"
+                label="端口"
                 type="number"
                 value={connectionForm.port}
                 onChange={(e) => setConnectionForm(prev => ({ ...prev, port: parseInt(e.target.value) }))}
@@ -744,7 +744,7 @@ const RemoteConnections: React.FC = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Username"
+                label="用户名"
                 value={connectionForm.username}
                 onChange={(e) => setConnectionForm(prev => ({ ...prev, username: e.target.value }))}
               />
@@ -752,17 +752,17 @@ const RemoteConnections: React.FC = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Password"
+                label="密码"
                 type="password"
                 value={connectionForm.password}
                 onChange={(e) => setConnectionForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder={editingConnection ? "Leave blank to keep existing password" : ""}
-                helperText={editingConnection ? "Leave blank to keep current password" : ""}
+                placeholder={editingConnection ? "留空以保留当前密码" : ""}
+                helperText={editingConnection ? "留空以保留当前密码" : ""}
               />
             </Grid>
             <Grid item xs={12}>              <TextField
                 fullWidth
-                label="Private Key (optional)"
+                label="私钥 (可选)"
                 multiline
                 rows={4}
                 value={connectionForm.privateKey}
@@ -777,15 +777,15 @@ const RemoteConnections: React.FC = () => {
                     onChange={(e) => setConnectionForm(prev => ({ ...prev, useSudo: e.target.checked }))}
                   />
                 }
-                label="Use sudo for privileged commands (requires password)"
+                label="使用 sudo 权限 (需要密码)"
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button onClick={handleDialogClose}>取消</Button>
           <Button onClick={handleDialogSubmit} variant="contained">
-            {editingConnection ? 'Update Connection' : 'Add Connection'}
+            {editingConnection ? '更新连接' : '添加连接'}
           </Button>
         </DialogActions>
       </Dialog>      {/* VS Code-style log status bar — renders all active log sessions as tabs */}

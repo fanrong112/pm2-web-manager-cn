@@ -1,332 +1,78 @@
-# EZ PM2 GUI
+# PM2 Web Manager (中文增强版)
 
-[![Discord](https://img.shields.io/discord/1234567890?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/ttgc2zqK7b)
+![PM2 Web Manager](https://img.shields.io/badge/PM2-Web_Manager-blue.svg)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
+![License](https://img.shields.io/badge/License-AGPL%203.0-green.svg)
 
-A modern web-based graphical user interface for the PM2 process manager, built with TypeScript, Tailwind CSS, and React.
+本项目基于原优秀的开源项目 [ezpm2gui](https://github.com/thechandanbhagat/ezpm2gui) 进行深度二次开发，针对国内开发者和 Windows 服务器环境进行了大量优化与修复。
 
-## Screenshots
+## 🌟 为什么需要这个版本？ (核心特性)
 
-**Process Dashboard** — live system metrics and every PM2 process at a glance:
+原版 `ezpm2gui` 存在几个对中国开发者和 Windows 环境不太友好的痛点。本项目针对这些痛点进行了彻底的重构和修复：
 
-![Process Dashboard](ezpm2gui/screenshots/01-processes.png)
+1. **🇨🇳 100% 深度汉化 UI**
+   - 所有的菜单、按钮、状态提示、操作面板全部中文化。
+   - 更加符合国人的操作直觉。
 
-**Monitoring** — real-time CPU, memory and uptime per process:
+2. **🪟 完美支持 Windows 远程服务器**
+   - **痛点修复**：原版使用原生的 Linux `tail` 等命令来拉取远程日志，这导致如果在 Windows 服务器上使用 SSH，日志功能会直接崩溃或无法读取。
+   - **解决方案**：重写了底层日志拉取逻辑，针对 Windows 环境自动降级使用 PowerShell (`Get-Content`) 获取日志，实现 Windows 远程服务器的无缝兼容。
 
-![Process Monitor](ezpm2gui/screenshots/02-monitoring.png)
+3. **🔤 彻底解决“中文乱码”问题**
+   - **痛点修复**：在读取含有中文（GBK/UTF-8 混杂）的日志时，原版经常会出现满屏乱码（如 `` 等符号）。
+   - **解决方案**：在 PowerShell 管道和本地终端中强制指定 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` 等编码策略，确保本地和远程日志的中文输出清晰准确。
 
-**Metrics (Live)** — rolling 1-hour sparklines per process, updated every 3 seconds:
-
-![Metrics Live](ezpm2gui/screenshots/12-metrics-live.png)
-
-**Metrics (History)** — SQLite-backed CPU and memory charts with selectable time range:
-
-![Metrics History](ezpm2gui/screenshots/13-metrics-history.png)
-
-**Deploy App** — start new PM2 processes from a structured form:
-
-![Deploy App](ezpm2gui/screenshots/04-deploy-app.png)
-
-**Cron Jobs** — schedule recurring tasks without touching crontab:
-
-![Cron Jobs](ezpm2gui/screenshots/08-cron-jobs.png)
-
-**Settings** — auto-saved preferences for refresh, logs, theme and security:
-
-![Settings](ezpm2gui/screenshots/11-settings.png)
-
-> See the full visual walkthrough in [https://ezpm2gui.vercel.app/](https://ezpm2gui.vercel.app/) — every screen is annotated with a screenshot.
-
-## Features
-
-- **Real-time process monitoring** - Keep track of all your PM2 processes in real-time
-- **Process management** - Start, stop, restart, and delete processes with one click
-- **System metrics dashboard** - Monitor CPU, memory usage, and uptime
-- **Metrics page with live sparklines** - Per-process rolling 1-hour CPU and memory micro-graphs updated every 3s; switch to History tab for SQLite-backed long-term charts
-- **Enhanced log streaming** - View and filter logs from multiple processes simultaneously
-- **WebSocket for live updates** - Get instant updates without refreshing
-- **Process CPU and memory charts** - Visualize performance metrics over time
-- **Filter processes by status or name** - Quickly find the processes you need
-- **Dark/light mode** - Fully supported across all pages with Tailwind CSS
-- **Cluster management** - Easily scale your Node.js applications
-- **Application deployment** - Deploy new applications directly from the UI
-- **Ecosystem configuration** - Create and manage your PM2 ecosystem files
-- **PM2 modules support** - Manage and configure PM2 modules
-- **Cron Jobs** - Schedule and manage automated tasks with visual cron expression builder
-- **Remote Server Management** - Connect and manage PM2 on remote servers via SSH
-- **Advanced Monitoring Dashboard** - Real-time performance charts with health scoring
-- **Tailwind CSS UI** - Sleek, compact, and responsive design with consistent dark/light theming
-- **Fully typed with TypeScript** - Robust and maintainable codebase
-
-## Detailed Features
-
-### Process Monitoring
-Monitor all your PM2 processes in real-time with detailed information on CPU usage, memory consumption, uptime, and status. The intuitive interface makes it easy to identify issues at a glance.
-
-### Remote Server Management
-Connect to and manage PM2 processes on remote servers via secure SSH connections:
-- Add multiple remote server connections with SSH credentials
-- View and manage processes on remote servers
-- Stream logs from remote processes in real-time
-- Execute PM2 commands on remote machines
-- Encrypted credential storage for security
-
-### Cron Jobs
-Schedule and automate tasks using PM2's cron restart feature:
-- Visual cron expression builder with common presets
-- Support for Node.js, Python, Shell, and .NET scripts
-- Inline script editor or file-based execution
-- Enable/disable jobs without deleting them
-- View next execution times and job status
-
-### Advanced Monitoring Dashboard
-Get deeper insights into your system and process performance:
-- Real-time performance charts for CPU, memory, and load
-- System health score calculation
-- Historical metrics tracking
-- Process alerts for high resource usage
-- Per-process performance visualization
-
-### Application Deployment
-Deploy new Node.js applications to PM2 directly from the UI. Configure all the necessary options including:
-- Application name and script path
-- Working directory
-- Number of instances for load balancing
-- Execution mode (fork or cluster)
-- Auto-restart options
-- Memory threshold for restarts
-- Environment variables
-
-### Cluster Management
-Easily scale your Node.js applications with the cluster management interface. Add or remove instances on the fly and switch between fork and cluster execution modes for optimal performance.
-
-### Log Streaming
-View and filter logs from multiple processes simultaneously with the enhanced log streaming interface. Features include:
-- Real-time log updates via WebSocket
-- Filtering by process, log level, or content
-- Pausing and resuming log streams
-- Download logs for offline analysis
-- Floating log panel for remote process logs
-
-### Ecosystem Configuration
-Generate and manage PM2 ecosystem configuration files directly from the UI. This makes it easy to set up complex application deployments and share configurations across your team.
-
-### PM2 Modules
-Manage and configure PM2 modules to extend the functionality of your PM2 installation. Install, update, and remove modules with a few clicks.
-
-### System Metrics
-Monitor key system metrics including:
-- CPU usage and number of cores
-- Memory usage and availability
-- System uptime
-- Load averages (1, 5, and 15 minutes)
-
-### User Interface
-EZ PM2 GUI uses Tailwind CSS for a sleek, compact, and fully responsive interface:
-- Dark and light mode support across all pages
-- Consistent color theming with smooth transitions
-- Compact layout with small fonts and reduced spacing for information density
-- `PageHeader` and `LogStatusBar` reusable components for a consistent look
-- Configure dashboard refresh intervals and log display settings from Settings
-
-## Installation
-
-### Global Installation
-
-```bash
-npm install -g ezpm2gui
-```
-
-### Local Installation
-
-```bash
-npm install ezpm2gui
-```
-
-## Usage
-
-### As a Command Line Tool (Global Installation)
-
-```bash
-# Start the EZ PM2 GUI web interface
-ezpm2gui
-
-# Start on a specific port
-ezpm2gui --port 4000
-
-# Start bound to all network interfaces
-ezpm2gui --host 0.0.0.0
-
-# Generate a sample PM2 ecosystem config
-ezpm2gui-generate-ecosystem
-```
-
-### As a Module (Local Installation)
-
-```javascript
-const ezpm2gui = require('ezpm2gui');
-
-// Start the server with default options
-ezpm2gui.start();
-
-// Or with custom options
-ezpm2gui.start({
-  port: 3030,
-  host: '0.0.0.0'
-});
-```
-
-### Access the UI
-
-Once started, open your browser and navigate to:
-
-```
-http://localhost:3001
-```
-
-## Requirements
-
-- Node.js 16.x or later
-- PM2 installed globally (`npm install -g pm2`)
-
-## Configuration
-
-EZ PM2 GUI uses environment variables for configuration:
-
-- `PORT`: The port to run the server on (default: 3001)
-- `HOST`: The host to bind to (default: localhost)
-
-## Load Balancing with PM2
-
-EZ PM2 GUI provides an easy interface to manage PM2's load balancing capabilities:
-
-### Setting Up Load Balancing
-
-1. **Deploy a new application or modify an existing one**: 
-   - Set the number of instances to greater than 1 (or 0/-1 for max instances based on CPU cores)
-   - Choose "Cluster" as the execution mode for optimal load balancing
-
-2. **Manage your cluster**:
-   - Use the Cluster Management section to scale instances up or down
-   - Switch between fork and cluster execution modes
-   - Reload all instances with zero downtime
-
-### How Load Balancing Works
-
-PM2 provides built-in load balancing when you run your Node.js applications in cluster mode with multiple instances:
-
-- **Cluster Mode**: In this mode, PM2 uses Node.js's cluster module to create multiple worker processes that share the same server port
-- **Multiple Instances**: Incoming requests are automatically distributed across your instances
-- **Zero Downtime Reloads**: When updating your application, PM2 can reload instances one by one to avoid downtime
-
-### Best Practices
-
-- For CPU-intensive applications, use a number of instances equal to the number of CPU cores
-- For I/O-intensive applications, you can use more instances than CPU cores
-- Always use cluster mode for load balancing to ensure port sharing between instances
-- Use the reload feature instead of restart for zero-downtime deployments
-
-## Development
-
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development instructions.
-
-```bash
-# Clone the repository
-git clone https://github.com/thechandanbhagat/ezpm2gui.git
-cd ezpm2gui
-
-# Install dependencies and build
-./install.sh   # On Linux/macOS
-install.bat    # On Windows
-
-# Start in development mode
-npm run dev
-
-# Build the application
-npm run build
-
-# Start the application (production mode)
-npm start
-```
-
-### Project Structure
-
-```
-ezpm2gui/
-├── bin/                 # CLI entry points
-├── dist/                # Compiled output
-├── docs/                # Documentation
-├── screenshots/         # Application screenshots
-├── scripts/             # Build and utility scripts
-├── src/                 # Source code
-│   ├── client/          # React frontend
-│   │   ├── public/      # Static assets
-│   │   └── src/         # React components and logic
-│   │       ├── components/ # UI components
-│   │       └── types/   # TypeScript types for client
-│   ├── server/          # Express backend
-│   │   ├── routes/      # API routes
-│   │   └── utils/       # Server utilities
-│   └── types/           # Shared TypeScript types
-└── test/                # Test files
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run the tests to ensure everything works
-5. Commit your changes using our [commit guidelines](./docs/COMMIT_GUIDE.md)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Coding Style
-
-This project follows standardized TypeScript conventions and uses ESLint for code quality. Before submitting a pull request, please ensure your code follows these guidelines by running:
-
-```bash
-npm run lint
-```
-
-## FAQ
-
-### Q: How does EZ PM2 GUI differ from pm2-gui and PM2 Plus?
-
-A: EZ PM2 GUI is a modern, TypeScript-based alternative to pm2-gui with a more user-friendly interface and additional features. Unlike PM2 Plus, it's completely free and open-source, running locally on your server rather than in the cloud.
-
-### Q: Can I use EZ PM2 GUI with PM2 running on a different machine?
-
-A: Yes, you can configure EZ PM2 GUI to connect to a remote PM2 installation. You'll need to specify the connection details in the application settings.
-
-### Q: How do I generate an ecosystem file from my existing processes?
-
-A: Use the `ezpm2gui-generate-ecosystem` command-line tool, or visit the Ecosystem Config section in the web UI.
-
-### Q: Can EZ PM2 GUI handle a large number of processes?
-
-A: Yes, EZ PM2 GUI is designed to handle dozens of processes efficiently. The UI is optimized to present large amounts of information in a digestible format.
-
-### Q: Is EZ PM2 GUI secure?
-
-A: By default, EZ PM2 GUI binds to localhost for security reasons. If you expose the interface to other machines, consider adding authentication through a reverse proxy like Nginx.
-
-## Related Projects
-
-- [PM2](https://github.com/Unitech/pm2) - The process manager that EZ PM2 GUI works with
-- [pm2-gui](https://github.com/Tjatse/pm2-gui) - The original inspiration for this project
-
-## License
-
-GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE).
-
-EZ PM2 GUI interfaces with [PM2](https://github.com/Unitech/pm2), which is licensed under AGPL-3.0. Because this project links PM2 as a library, it is distributed under the same license.
-
-## Credits
-
-Built by [Chandan Bhagat](https://github.com/thechandanbhagat) as a modern alternative to pm2-gui.
+4. **🔒 修复严重的安全隐私漏洞**
+   - **痛点修复**：原版项目中，由于 `.gitignore` 的配置疏漏，用户的远程服务器账号密码文件 (`remote-connections.json`) 极易被误传到开源仓库中。
+   - **解决方案**：修复了 `.gitignore`，强制忽略本地敏感配置文件，保护您的服务器资产绝对安全。
 
 ---
 
-**Note**: EZ PM2 GUI is not officially affiliated with PM2 or PM2 Plus. It's an independent tool that interfaces with the PM2 process manager.
+## 🚀 安装与启动 (Installation)
+
+1. 克隆代码：
+```bash
+git clone https://github.com/fanrong112/pm2-web-manager-cn.git
+cd pm2-web-manager-cn
+```
+
+2. 安装依赖：
+```bash
+npm install
+cd src/client && npm install && cd ../..
+```
+
+3. 编译并运行：
+```bash
+npm run build
+npm start
+```
+默认会在 `http://localhost:3002` 启动 Web 服务。
+
+---
+
+# PM2 Web Manager (Chinese Enhanced Edition)
+
+This project is a deep customization based on the excellent open-source project [ezpm2gui](https://github.com/thechandanbhagat/ezpm2gui). It is specifically optimized for Chinese developers and Windows server environments.
+
+## 🌟 Key Enhancements
+
+1. **🇨🇳 Full Chinese Localization (UI)**
+   - All menus, buttons, status indicators, and dashboards have been fully translated into Chinese.
+
+2. **🪟 Full Windows Server SSH Compatibility**
+   - **Fixed**: The original version relied on Linux `tail` and other bash commands to fetch remote logs. This caused the remote logging feature to fail completely when connecting to a Windows server via SSH.
+   - **Solution**: Implemented a robust fallback mechanism using PowerShell (`Get-Content`) to seamlessly fetch logs from remote Windows servers.
+
+3. **🔤 UTF-8 / GBK Encoding Fixes**
+   - **Fixed**: Chinese characters in logs often appeared as garbled text (``).
+   - **Solution**: Enforced `[System.Text.Encoding]::UTF8` in PowerShell execution and SSH pipelines to ensure pristine rendering of Chinese logs.
+
+4. **🔒 Critical Security Patch**
+   - **Fixed**: The original project failed to ignore the `remote-connections.json` file in `.gitignore`, which could easily lead to the accidental leak of remote server credentials (IPs, Usernames, Passwords) to public repositories.
+   - **Solution**: Added strict `.gitignore` rules to permanently exclude sensitive credential files.
+
+## 📄 协议 (License)
+
+本项目遵循 **AGPL-3.0** 开源协议，与原项目保持一致。
+This project is licensed under the **AGPL-3.0 License**.
