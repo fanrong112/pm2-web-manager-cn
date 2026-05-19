@@ -1,10 +1,10 @@
 {
   "name": "pm2-web-manager-cn",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "main": "dist/server/index.js",
   "bin": {
-    "pm2-web-cn": "bin/ezpm2gui.js",
-    "pm2-web-cn-setup": "bin/generate-ecosystem.js"
+    "ezpm2cn": "bin/ezpm2gui.js",
+    "ezpm2cn-setup": "bin/generate-ecosystem.js"
   },
   "scripts": {
     "start": "node dist/server/index.js",
