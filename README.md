@@ -28,7 +28,24 @@
 
 ---
 
-## 🚀 安装与启动 (Installation)
+## 🚀 安装与使用 (Usage)
+
+### 方法 A：通过 NPM 全局安装直接使用 (推荐，最简单)
+
+你可以在任何电脑上通过 npm 快速全局安装并启动它：
+
+```bash
+# 全局安装
+npm install -g pm2-web-manager-cn
+
+# 启动 Web 面板
+ezpm2cn
+```
+启动后在浏览器打开：`http://localhost:3101` 即可使用。
+
+---
+
+### 方法 B：本地开发与编译安装 (Developers)
 
 1. 克隆代码：
 ```bash
