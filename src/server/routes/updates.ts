@@ -6,6 +6,7 @@ import https from 'https';
 
 // @group Types : Update check response shape
 interface VersionInfo {
+  name: string;
   currentVersion: string;
   latestVersion: string;
   updateAvailable: boolean;
@@ -13,8 +14,13 @@ interface VersionInfo {
   publishedAt?: string;
 }
 
-// @group Utilities : Read the current installed version from package.json
-const getCurrentVersion = (): string => {
+interface PackageInfo {
+  name: string;
+  version: string;
+}
+
+// @group Utilities : Read the current installed package details from package.json
+const getPackageInfo = (): PackageInfo => {
   try {
     // Try the package root (works when run from source or dist)
     const candidates = [
@@ -25,20 +31,25 @@ const getCurrentVersion = (): string => {
     for (const p of candidates) {
       if (fs.existsSync(p)) {
         const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-        if (pkg.name === 'ezpm2gui') return pkg.version as string;
+        if (pkg.name) {
+          return {
+            name: pkg.name,
+            version: pkg.version || '0.0.0'
+          };
+        }
       }
     }
   } catch {
     // fall through
   }
-  return '0.0.0';
+  return { name: 'pm2-web-manager-cn', version: '0.0.0' };
 };
 
 // @group Utilities : Fetch latest version info from npm registry (no external deps)
-const fetchNpmLatest = (): Promise<{ version: string; description?: string; publishedAt?: string }> =>
+const fetchNpmLatest = (packageName: string): Promise<{ version: string; description?: string; publishedAt?: string }> =>
   new Promise((resolve, reject) => {
     const req = https.get(
-      'https://registry.npmjs.org/ezpm2gui/latest',
+      `https://registry.npmjs.org/${packageName}/latest`,
       { headers: { Accept: 'application/json' } },
       (res) => {
         let data = '';
@@ -52,7 +63,7 @@ const fetchNpmLatest = (): Promise<{ version: string; description?: string; publ
               publishedAt: json.time?.modified as string | undefined,
             });
           } catch {
-            reject(new Error('Failed to parse npm registry response'));
+            reject(new Error(`Failed to parse npm registry response for ${packageName}`));
           }
         });
       }
@@ -76,11 +87,12 @@ const router: Router = Router();
 // @group CheckUpdate : GET /api/update/check — returns current vs latest npm version
 router.get('/check', async (_req, res) => {
   try {
-    const currentVersion = getCurrentVersion();
-    const { version: latestVersion, publishedAt } = await fetchNpmLatest();
+    const { name: packageName, version: currentVersion } = getPackageInfo();
+    const { version: latestVersion, publishedAt } = await fetchNpmLatest(packageName);
     const updateAvailable = isNewer(currentVersion, latestVersion);
 
     const result: VersionInfo = {
+      name: packageName,
       currentVersion,
       latestVersion,
       updateAvailable,
@@ -94,7 +106,7 @@ router.get('/check', async (_req, res) => {
   }
 });
 
-// @group InstallUpdate : POST /api/update/install — installs ezpm2gui@latest globally
+// @group InstallUpdate : POST /api/update/install — installs package@latest globally
 // Streams progress lines as newline-delimited JSON (ndjson) so the client can read incrementally.
 router.post('/install', (req, res) => {
   res.setHeader('Content-Type', 'application/x-ndjson');
@@ -102,15 +114,17 @@ router.post('/install', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.flushHeaders();
 
+  const { name: packageName } = getPackageInfo();
+
   const send = (type: 'log' | 'error' | 'done' | 'fail', message: string) => {
     res.write(JSON.stringify({ type, message }) + '\n');
   };
 
-  send('log', 'Starting update — running npm install -g ezpm2gui@latest...');
+  send('log', `Starting update — running npm install -g ${packageName}@latest...`);
 
   // Use `npm` with execFile for safety — no shell injection possible
   const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const child = spawn(npmCmd, ['install', '-g', 'ezpm2gui@latest'], {
+  const child = spawn(npmCmd, ['install', '-g', `${packageName}@latest`], {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: false,
   });

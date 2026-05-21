@@ -33,6 +33,7 @@ type SectionId = 'general' | 'appearance' | 'pm2' | 'advanced' | 'updates' | 'se
 
 // @group Types : npm update check response
 interface VersionInfo {
+  name?: string;
   currentVersion: string;
   latestVersion: string;
   updateAvailable: boolean;
@@ -661,7 +662,7 @@ const Settings: React.FC = () => {
             <SectionCard title="Version">
               <SettingRow
                 label="Current Version"
-                description="The version of ezpm2gui currently running"
+                description={`The version of ${versionInfo?.name || 'pm2-web-manager-cn'} currently running`}
                 control={
                   <Chip
                     label={versionInfo ? `v${versionInfo.currentVersion}` : 'unknown'}
@@ -733,7 +734,7 @@ const Settings: React.FC = () => {
               <SectionCard title="Install Update">
                 <SettingRow
                   label={`Install v${versionInfo.latestVersion}`}
-                  description="Runs npm install -g ezpm2gui@latest. Frontend assets update immediately; restart the server to apply backend changes."
+                  description={`Runs npm install -g ${versionInfo?.name || 'pm2-web-manager-cn'}@latest. Frontend assets update immediately; restart the server to apply backend changes.`}
                   last
                   control={
                     <Button
@@ -819,7 +820,7 @@ const Settings: React.FC = () => {
 
             {installFailed && (
               <Alert severity="error" sx={{ fontSize: '0.8125rem' }}>
-                Update failed. Check the output above. You can also run <code>npm install -g ezpm2gui@latest</code> manually.
+                Update failed. Check the output above. You can also run <code>npm install -g {versionInfo?.name || 'pm2-web-manager-cn'}@latest</code> manually.
               </Alert>
             )}
           </>
