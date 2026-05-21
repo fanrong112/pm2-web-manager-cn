@@ -505,6 +505,7 @@ const App: React.FC = () => {
           // Refresh connections list to reflect new connected state
           const res = await axios.get<RemoteConnection[]>('/api/remote/connections');
           setRemoteConnections(res.data);
+          window.dispatchEvent(new CustomEvent('remote-connection-changed'));
         } catch (err: any) {
           enqueueNotification(`Failed to connect to ${conn.name || conn.host}: ${err.response?.data?.error || err.message}`);
         }

@@ -31,7 +31,16 @@ export class RemoteConnection extends EventEmitter {
   private client: Client;
   private config: RemoteConnectionConfig;
   private _isConnected = false;
+  private userDisconnected = true; // Prevents auto-reconnects when user explicitly disconnects
   public isPM2Installed = false;
+
+  // Queue to control concurrent SSH channel openings and avoid "Channel open failure"
+  private activeExecutions = 0;
+  private executionQueue: Array<{
+    run: () => void;
+    reject: (reason: any) => void;
+  }> = [];
+  private static readonly MAX_CONCURRENT_COMMANDS = 3;
   
   // Public properties for connection info
   public name: string;
@@ -92,6 +101,8 @@ export class RemoteConnection extends EventEmitter {
       return Promise.resolve();
     }
 
+    this.userDisconnected = false; // Reset flag on explicit connect
+
     return new Promise((resolve, reject) => {      this.client.on('ready', () => {
         this._isConnected = true;
         console.log(`Successfully connected to ${this.config.host}`);
@@ -102,12 +113,14 @@ export class RemoteConnection extends EventEmitter {
       this.client.on('error', (err) => {
         this._isConnected = false;
         console.error(`SSH connection error for ${this.config.host}:`, err.message);
+        this.clearQueue(err);
         reject(err);
       });
 
       this.client.on('end', () => {
         this._isConnected = false;
         console.log(`Disconnected from ${this.config.host}`);
+        this.clearQueue(new Error('Connection closed'));
         this.emit('disconnected');
       });
 
@@ -147,19 +160,55 @@ export class RemoteConnection extends EventEmitter {
    */
   disconnect(): Promise<void> {
     return new Promise((resolve) => {
+      this.userDisconnected = true; // Mark as explicitly disconnected by user
+
       if (!this._isConnected) {
         resolve();
         return;
       }
 
-      this.client.once('end', () => {
-        this._isConnected = false;
-        resolve();
-      });
+      this._isConnected = false;
 
-      this.client.end();
+      try {
+        this.client.end();
+      } catch (err) {
+        // ignore errors
+      }
+
+      this.clearQueue(new Error('Connection closed by user'));
+      this.emit('disconnected');
+      resolve();
     });
   }  /**
+   * Clear the command execution queue and reject pending commands.
+   */
+  private clearQueue(error: Error) {
+    const tempQueue = [...this.executionQueue];
+    this.executionQueue = [];
+    this.activeExecutions = 0;
+    tempQueue.forEach(item => {
+      try {
+        item.reject(error);
+      } catch (err) {
+        // Ignore reject errors
+      }
+    });
+  }
+
+  /**
+   * Process the next command in the queue if concurrency limits allow.
+   */
+  private processQueue() {
+    if (this.activeExecutions >= RemoteConnection.MAX_CONCURRENT_COMMANDS) {
+      return;
+    }
+    const next = this.executionQueue.shift();
+    if (next) {
+      next.run();
+    }
+  }
+
+  /**
    * Execute a command on the remote server
    * @param command The command to execute
    * @param forceSudo Whether to force using sudo for this specific command
@@ -167,6 +216,9 @@ export class RemoteConnection extends EventEmitter {
   async executeCommand(command: string, forceSudo?: boolean): Promise<CommandResult> {    
     // Connect if not already connected
     if (!this._isConnected) {
+      if (this.userDisconnected) {
+        throw new Error('Not connected (user disconnected)');
+      }
       await this.connect();
     }
 
@@ -180,46 +232,58 @@ export class RemoteConnection extends EventEmitter {
     console.log(`Executing command: ${useElevatedPrivileges ? '[sudo] ' : ''}${command}`);
 
     return new Promise((resolve, reject) => {
-      this.client.exec(finalCommand, (err, channel) => {
-        if (err) {
-          console.error('Error executing command:', err);
-          return reject(err);
-        }
+      const run = () => {
+        this.activeExecutions++;
+        this.client.exec(finalCommand, (err, channel) => {
+          if (err) {
+            console.error('Error executing command:', err);
+            this.activeExecutions--;
+            this.processQueue();
+            return reject(err);
+          }
 
-        // Write password to sudo's stdin, then close stdin
-        if (useElevatedPrivileges && this.config.password) {
-          channel.stdin.write(this.config.password + '\n');
-          channel.stdin.end();
-        }
+          // Write password to sudo's stdin, then close stdin
+          if (useElevatedPrivileges && this.config.password) {
+            channel.stdin.write(this.config.password + '\n');
+            channel.stdin.end();
+          }
 
-        let stdout = '';
-        let stderr = '';
-        let exitCode: number | null = null;
-        channel.on('data', (data: Buffer) => {
-          stdout += data.toString();
-        });
+          let stdout = '';
+          let stderr = '';
+          let exitCode: number | null = null;
+          channel.on('data', (data: Buffer) => {
+            stdout += data.toString();
+          });
 
-        channel.stderr.on('data', (data: Buffer) => {
-          stderr += data.toString();
-        });
+          channel.stderr.on('data', (data: Buffer) => {
+            stderr += data.toString();
+          });
 
-        channel.on('exit', (code) => {
-          exitCode = code;
-        });
+          channel.on('exit', (code) => {
+            exitCode = code;
+          });
 
-        channel.on('close', () => {
-          resolve({
-            stdout,
-            stderr,
-            code: exitCode
+          channel.on('close', () => {
+            this.activeExecutions--;
+            this.processQueue();
+            resolve({
+              stdout,
+              stderr,
+              code: exitCode
+            });
+          });
+
+          channel.on('error', (err) => {
+            console.error('Channel error:', err);
+            this.activeExecutions--;
+            this.processQueue();
+            reject(err);
           });
         });
+      };
 
-        channel.on('error', (err) => {
-          console.error('Channel error:', err);
-          reject(err);
-        });
-      });
+      this.executionQueue.push({ run, reject });
+      this.processQueue();
     });
   }
 

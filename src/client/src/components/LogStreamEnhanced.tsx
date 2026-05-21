@@ -94,8 +94,8 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
           const res = await axios.get(`/api/logs/${initPid}/${selectedLogType}`);
           logsData = res.data.logs || [];
         } else {
-          const res = await axios.get(`/api/remote/${serverId}/logs/${initPid}`);
-          logsData = selectedLogType === 'out' ? (res.data.stdout || []) : (res.data.stderr || []);
+          const res = await axios.get(`/api/remote/${serverId}/logs/${initPid}/${selectedLogType}`);
+          logsData = res.data.logs || [];
         }
 
         setLogs(logsData);
@@ -173,8 +173,8 @@ const LogStreamEnhanced: React.FC<LogStreamEnhancedProps> = ({
         const res = await axios.get(`/api/logs/${initPid}/${selectedLogType}`);
         logsData = res.data.logs || [];
       } else {
-        const res = await axios.get(`/api/remote/${serverId}/logs/${initPid}`);
-        logsData = selectedLogType === 'out' ? (res.data.stdout || []) : (res.data.stderr || []);
+        const res = await axios.get(`/api/remote/${serverId}/logs/${initPid}/${selectedLogType}`);
+        logsData = res.data.logs || [];
       }
       setLogs(logsData);
       setLoading(false);

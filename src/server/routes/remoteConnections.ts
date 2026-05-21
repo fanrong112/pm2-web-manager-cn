@@ -635,7 +635,67 @@ const resolveRemoteLogPath = async (connection: any, processId: string, logType:
     if (!proc) return { logPath: null, error: 'Process not found' };
 
     const key = logType === 'out' ? 'pm_out_log_path' : 'pm_err_log_path';
-    return { logPath: proc.pm2_env?.[key] ?? null };
+    let logPath = proc.pm2_env?.[key] ?? null;
+    if (!logPath) return { logPath: null };
+
+    // Optimize and resolve fuzzy path if the raw path contains Chinese or non-ASCII characters
+    // since PM2 replaces them with dashes on the disk, but keeps them in pm2_env JSON.
+    const path = require('path');
+    const isWindowsPath = logPath.includes('\\') || logPath.includes('/');
+    
+    // Check if the path contains non-ASCII characters
+    if (/[^\x00-\x7F]/.test(logPath)) {
+      console.log(`[resolveRemoteLogPath] Path contains non-ASCII: ${logPath}. Attempting fuzzy resolution...`);
+      try {
+        const dir = path.dirname(logPath).replace(/\\/g, '/');
+        const ext = path.extname(logPath);
+        const base = path.basename(logPath, ext);
+        const isOut = base.endsWith('-out') || base.endsWith('_out');
+        const suffix = isOut ? 'out.log' : 'error.log';
+
+        // 1. Try exact non-ASCII replace with dash
+        const sanitizedBase = base.replace(/[^a-zA-Z0-9\-_]/g, '-');
+        const sanitizedPath = path.join(path.dirname(logPath), sanitizedBase + ext);
+
+        // Run remote check for sanitized path
+        const checkCmd = isWindowsPath 
+          ? `powershell -Command "Test-Path '${sanitizedPath.replace(/\\/g, '/')}'"`
+          : `test -f "${sanitizedPath}"`;
+        const checkResult = await connection.executeCommand(checkCmd);
+        if (checkResult.code === 0 && checkResult.stdout.trim().toLowerCase().includes('true')) {
+          console.log(`[resolveRemoteLogPath] Resolved exact sanitized path: ${sanitizedPath}`);
+          return { logPath: sanitizedPath };
+        }
+
+        // 2. Fallback to listing directory and fuzzy matching
+        const listCmd = isWindowsPath
+          ? `powershell -Command "if (Test-Path '${dir}') { Get-ChildItem -Name -Path '${dir}' }"`
+          : `ls -1 "${dir}" 2>/dev/null`;
+        
+        const listResult = await connection.executeCommand(listCmd);
+        if (listResult.code === 0 && listResult.stdout.trim()) {
+          const files = listResult.stdout.split('\n').map((f: string) => f.trim()).filter((f: string) => f);
+          const asciiPart = base.replace(/[^a-zA-Z0-9]/g, ''); // e.g. "HTMLout"
+
+          for (const file of files) {
+            if (file.toLowerCase().endsWith(suffix.toLowerCase())) {
+              const fileAscii = file.replace(/[^a-zA-Z0-9]/g, '');
+              if (fileAscii.includes(asciiPart) || asciiPart.includes(fileAscii)) {
+                const resolved = isWindowsPath 
+                  ? `${path.dirname(logPath)}\\${file}`.replace(/\//g, '\\')
+                  : `${path.dirname(logPath)}/${file}`;
+                console.log(`[resolveRemoteLogPath] Fuzzy matched log path: ${resolved}`);
+                return { logPath: resolved };
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[resolveRemoteLogPath] Error in remote fuzzy resolution:', err);
+      }
+    }
+
+    return { logPath };
   } catch {
     return { logPath: null, error: 'Failed to parse PM2 process list' };
   }

@@ -1,6 +1,6 @@
 {
   "name": "pm2-web-manager-cn",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "main": "dist/server/index.js",
   "bin": {
     "ezpm2cn": "bin/ezpm2gui.js",

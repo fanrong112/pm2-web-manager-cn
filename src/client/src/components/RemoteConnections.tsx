@@ -163,6 +163,7 @@ const RemoteConnections: React.FC = () => {
         );
         // Auto-expand so the user sees processes immediately after connecting
         setExpandedConnections(prev => new Set([...prev, connectionId]));
+        window.dispatchEvent(new CustomEvent('remote-connection-changed'));
       } else {
         // Try to parse as JSON, but handle non-JSON responses
         try {
@@ -201,6 +202,7 @@ const RemoteConnections: React.FC = () => {
           delete newProcesses[connectionId];
           return newProcesses;
         });
+        window.dispatchEvent(new CustomEvent('remote-connection-changed'));
       }
     } catch (error) {
       console.error('Disconnect failed:', error);

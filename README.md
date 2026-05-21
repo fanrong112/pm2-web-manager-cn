@@ -89,6 +89,12 @@ This project is a deep customization based on the excellent open-source project 
    - **Fixed**: The original project failed to ignore the `remote-connections.json` file in `.gitignore`, which could easily lead to the accidental leak of remote server credentials (IPs, Usernames, Passwords) to public repositories.
    - **Solution**: Added strict `.gitignore` rules to permanently exclude sensitive credential files.
 
+5. **🔌 Remote Connection Stability & Real-Time Sync (v1.8.4)**
+   - **Fuzzy Log Path Resolver**: Resolves Chinese process names mapping quirks on Windows (where PM2 sanitizes process names into dashes on disk e.g., `------out.log` while retaining Chinese in metadata). It now lists remote directories to fuzzy-match target files, fixing the blank log issue on page refresh.
+   - **Real-Time Sidebar Sync**: Synchronizes sidebar process trees and connection indicators in milliseconds upon connect/disconnect events (using a global event bus).
+   - **User Intent Lock**: Prevents background metric pollers and API calls from auto-reconnecting closed SSH sessions after manual disconnection.
+   - **Instant Disconnect**: Re-architected connection termination to respond instantly and bypass lagging SSH `end` event hooks.
+
 ## 📄 协议 (License)
 
 本项目遵循 **AGPL-3.0** 开源协议，与原项目保持一致。

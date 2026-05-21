@@ -56,6 +56,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
   const [serverGroups,    setServerGroups]    = useState<SidebarServerGroup[]>([]);
   const [expandedServers, setExpandedServers] = useState<Set<string>>(new Set(['local']));
   const [treeLoading,     setTreeLoading]     = useState(false);
+  const [reloadTrigger,   setReloadTrigger]   = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,6 +114,52 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ onItemClick, collapsed = fals
 
     load();
     return () => { cancelled = true; };
+  }, [reloadTrigger]);
+
+  // Poll connection states and listen for manual triggers to keep sidebar synchronized
+  useEffect(() => {
+    const handleTrigger = () => {
+      setReloadTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('remote-connection-changed', handleTrigger);
+
+    // Fast local memory poll every 3 seconds to auto-detect connection state changes
+    const interval = setInterval(async () => {
+      try {
+        const res = await axios.get('/api/remote/connections');
+        const connections = res.data;
+
+        // Check if any connected state differs from our local groups
+        let hasChanges = false;
+        setServerGroups(prev => {
+          let updated = false;
+          const next = prev.map(g => {
+            if (!g.isRemote) return g;
+            const conn = connections.find((c: any) => c.id === g.serverId);
+            if (!conn) return g;
+            if (conn.connected !== g.connected) {
+              hasChanges = true;
+              updated = true;
+              return { ...g, connected: conn.connected };
+            }
+            return g;
+          });
+          return updated ? next : prev;
+        });
+
+        if (hasChanges) {
+          setReloadTrigger(prev => prev + 1);
+        }
+      } catch (err) {
+        // fail silently
+      }
+    }, 3000);
+
+    return () => {
+      window.removeEventListener('remote-connection-changed', handleTrigger);
+      clearInterval(interval);
+    };
   }, []);
 
   const toggleServer = (id: string) => {

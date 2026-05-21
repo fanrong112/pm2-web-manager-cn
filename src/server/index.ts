@@ -170,14 +170,55 @@ export function createServer() {
     }
     res.json(entry);
   });
-
   // @group LogHistory : Resolve log path from PM2 process descriptor
   const resolveLocalLogPath = async (id: string, logType: 'out' | 'err'): Promise<string | null> => {
     const processDesc = await executePM2Command<any[]>((callback) => {
       pm2.describe(id, callback);
     });
     if (!processDesc || processDesc.length === 0) return null;
-    return processDesc[0]?.pm2_env?.[`pm_${logType}_log_path`] ?? null;
+    const logPath = processDesc[0]?.pm2_env?.[`pm_${logType}_log_path`] ?? null;
+    if (!logPath) return null;
+
+    // Fuzzy resolve if path contains non-ASCII characters on Windows
+    if (/[^\x00-\x7F]/.test(logPath)) {
+      const fs = require('fs');
+      const path = require('path');
+      if (fs.existsSync(logPath)) return logPath;
+
+      try {
+        const dir = path.dirname(logPath);
+        const ext = path.extname(logPath);
+        const base = path.basename(logPath, ext);
+        const isOut = base.endsWith('-out') || base.endsWith('_out');
+        const suffix = isOut ? 'out.log' : 'error.log';
+
+        // 1. Try exact non-ASCII replace with dash
+        const sanitizedBase = base.replace(/[^a-zA-Z0-9\-_]/g, '-');
+        const sanitizedPath = path.join(dir, sanitizedBase + ext);
+        if (fs.existsSync(sanitizedPath)) {
+          return sanitizedPath;
+        }
+
+        // 2. Fuzzy match directory files
+        if (fs.existsSync(dir)) {
+          const files = fs.readdirSync(dir);
+          const asciiPart = base.replace(/[^a-zA-Z0-9]/g, '');
+
+          for (const file of files) {
+            if (file.toLowerCase().endsWith(suffix.toLowerCase())) {
+              const fileAscii = file.replace(/[^a-zA-Z0-9]/g, '');
+              if (fileAscii.includes(asciiPart) || asciiPart.includes(fileAscii)) {
+                return path.join(dir, file);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error resolving local fuzzy log path:', err);
+      }
+    }
+
+    return logPath;
   };
 
   // @group LogHistory : Get log lines — ?lines=N (default 200, 0 = all)
