@@ -768,10 +768,10 @@ const App: React.FC = () => {
 
                 {/* @group GitHub : Star button */}
                 <a
-                  href="https://github.com/thechandanbhagat/ezpm2gui"
+                  href="https://github.com/fanrong112/pm2-web-manager-cn"
                   target="_blank"
                   rel="noopener noreferrer"
-                  title="Star EZ PM2 GUI on GitHub"
+                  title="Star PM2 Web Manager on GitHub"
                   className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium no-underline border transition-colors ${
                     darkMode
                       ? 'bg-neutral-800 border-neutral-700 text-neutral-300 hover:border-yellow-400/60 hover:text-yellow-400'
@@ -784,7 +784,7 @@ const App: React.FC = () => {
 
                 {/* @group GitHub : Repo link */}
                 <a
-                  href="https://github.com/thechandanbhagat/ezpm2gui"
+                  href="https://github.com/fanrong112/pm2-web-manager-cn"
                   target="_blank"
                   rel="noopener noreferrer"
                   title="View on GitHub"
