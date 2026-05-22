@@ -44,3 +44,10 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Remote connections configuration (contains sensitive data)
+src/server/config/remote-connections.json
+dist/server/config/remote-connections.json
+dist/server/config/remote-connections.json.bak
+dist/server/config/auth.json
+src/server/config/auth.json

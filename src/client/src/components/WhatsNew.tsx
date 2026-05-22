@@ -29,57 +29,80 @@ interface Release {
 // @group Constants : Changelog data
 const RELEASES: Release[] = [
   {
-    version: '1.6.0',
-    date: 'April 2026',
-    headline: 'App Security & Lock Screen',
+    version: '1.8.4',
+    date: '2026年5月',
+    headline: 'PM2 Web Manager 中文增强与 Windows 适配版',
     changes: [
       {
-        title: 'PIN Lock Screen',
+        title: '🇨🇳 UI 深度汉化',
         description:
-          'Protect the app with a 4-digit PIN. The lock screen shows a numeric keypad that auto-submits on the 4th digit. Keyboard entry is also supported.',
-        icon: KeyIcon,
-        color: 'text-violet-500',
+          '为了更加符合国内开发者的使用直觉，我们对菜单、按钮、状态提示、操作面板、图表全部进行了深度中文化翻译与重构。',
+        icon: SparklesIcon,
+        color: 'text-indigo-500',
         tag: 'New',
       },
       {
-        title: 'Password Protection',
+        title: '🪟 Windows 远程连接完美兼容',
         description:
-          'Optionally require a password before the app is accessible. Set, change, or remove password protection from the Security section in Settings.',
+          '原版使用 tail 等 Linux 命令读取日志，在 Windows SSH 服务器上会直接崩溃。本项目重写了底层日志拉取逻辑，自动适配 PowerShell 进行无缝兼容拉取。',
         icon: ShieldCheckIcon,
         color: 'text-blue-500',
         tag: 'New',
       },
       {
-        title: 'Lock / Unlock Toggle',
+        title: '🔤 彻底解决“中文乱码”问题',
         description:
-          'A lock button in the top navbar lets you manually lock the app at any time. Reopening the tab restores your unlocked session automatically.',
-        icon: LockClosedIcon,
-        color: 'text-primary-500',
-        tag: 'New',
-      },
-      {
-        title: 'Session Persistence',
-        description:
-          'Once unlocked, the session stays unlocked through page refreshes within the same browser tab — no need to re-enter credentials on every reload.',
+          '在 SSH 通道与本地 PowerShell 环境中强制统一指定 UTF-8 编码，消除 GBK/UTF-8 日志混杂带来的中文乱码。',
         icon: LockOpenIcon,
-        color: 'text-green-500',
+        color: 'text-emerald-500',
         tag: 'New',
       },
       {
-        title: 'Auto-Lock on Inactivity',
+        title: '🔒 敏感连接数据安全补丁',
         description:
-          'Configure an inactivity timeout (in minutes) from Settings > Security. The app automatically locks after the specified idle period. Set to 0 to disable.',
+          '修复了远程连接凭证配置文件误传的漏洞，在 .gitignore 中永久过滤远程服务器的敏感账号密码。',
         icon: ClockIcon,
         color: 'text-orange-500',
         tag: 'New',
       },
       {
-        title: 'PIN + Password Dual Mode',
+        title: '🔌 毫秒级同步与状态锁 (v1.8.4)',
         description:
-          'When both PIN and password are configured, the lock screen shows a toggle so you can choose which method to use. Defaults to PIN for convenience.',
-        icon: SparklesIcon,
-        color: 'text-pink-500',
+          '增加了中文进程日志路径模糊匹配（解决 PM2 自动清洗为破折号导致日志加载空白的问题）、实现了毫秒级侧边栏状态同步、关闭连接时自动加锁防止意外重连。',
+        icon: KeyIcon,
+        color: 'text-violet-500',
         tag: 'Improved',
+      },
+    ],
+  },
+  {
+    version: '1.6.0',
+    date: '2026年4月',
+    headline: 'App 安全防护与屏幕锁定',
+    changes: [
+      {
+        title: 'PIN 码锁定屏幕',
+        description:
+          '使用 4 位 PIN 码保护应用。锁定屏幕具有数字小键盘，在第 4 位数输入时自动提交验证。也支持键盘输入。',
+        icon: KeyIcon,
+        color: 'text-violet-500',
+        tag: 'New',
+      },
+      {
+        title: '密码保护',
+        description:
+          '可以从设置的安全选项中要求密码验证才能进入应用。',
+        icon: ShieldCheckIcon,
+        color: 'text-blue-500',
+        tag: 'New',
+      },
+      {
+        title: '手动锁定开关',
+        description:
+          '顶部导航条添加快速锁定按钮，支持随时退出会话并强制输入 PIN 码或密码重新登录。',
+        icon: LockClosedIcon,
+        color: 'text-primary-500',
+        tag: 'New',
       },
     ],
   },
@@ -102,11 +125,11 @@ const WhatsNew: React.FC = () => {
         <div className="flex items-center gap-2 mb-1">
           <SparklesIcon className="h-5 w-5 text-primary-500" />
           <h1 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-            What's New
+            更新日志
           </h1>
         </div>
         <p className="text-xs text-neutral-500 dark:text-neutral-500">
-          Latest updates and improvements to EZ PM2 GUI
+          PM2 Web Manager 中文增强版最新更新与功能优化
         </p>
       </div>
 
@@ -173,10 +196,10 @@ const WhatsNew: React.FC = () => {
                       bg-neutral-50 dark:bg-neutral-900/50 p-4 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 mb-0.5">
-            Configure Security
+            安全与防范设置
           </p>
           <p className="text-xs text-neutral-500 dark:text-neutral-500">
-            Set up PIN and password protection from Settings.
+            前往设置页面开启 PIN 码和密码保护。
           </p>
         </div>
         <Link
@@ -185,7 +208,7 @@ const WhatsNew: React.FC = () => {
                      bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium
                      transition-colors duration-150"
         >
-          Open Settings
+          前往设置
           <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
         </Link>
       </div>

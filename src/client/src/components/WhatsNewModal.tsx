@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 // @group Constants
-const VERSION = '1.7.0';
+const VERSION = '1.8.4';
 const STORAGE_KEY = `ezpm2_whats_new_seen_v${VERSION}`;
 
 // @group Types
@@ -33,39 +33,39 @@ interface WhatsNewModalProps {
 // @group Constants : Feature highlights for the popup
 const HIGHLIGHTS: HighlightItem[] = [
   {
-    icon: SignalIcon,
+    icon: SparklesIcon,
     color: 'text-indigo-500',
     bg: 'bg-indigo-500/10',
-    title: 'Live Metrics Page',
-    description: 'Per-process rolling 1-hour CPU and memory sparklines, updated every 3s. Find it under Metrics in the sidebar.',
+    title: '🇨🇳 UI 深度汉化',
+    description: '所有的菜单、按钮、状态提示、操作面板全部中文化，更加符合中文开发者的使用直觉。',
   },
   {
-    icon: ChartBarIcon,
+    icon: SignalIcon,
     color: 'text-cyan-500',
     bg: 'bg-cyan-500/10',
-    title: 'Metrics History (SQLite)',
-    description: 'Remote process metrics recorded every 30s to a local SQLite DB. View CPU and memory charts across 30 min to 7 days.',
+    title: '🪟 Windows 远程连接完美兼容',
+    description: '重构底层日志拉取机制，在 Windows SSH 远程连接下自动适配使用 PowerShell 兼容拉取。',
   },
   {
     icon: CpuChipIcon,
     color: 'text-emerald-500',
     bg: 'bg-emerald-500/10',
-    title: 'Inline Sparklines',
-    description: 'Every row in the Metrics table now shows a 1-hour CPU and memory micro-graph — no extra click required.',
+    title: '🔤 彻底解决“中文乱码”问题',
+    description: '强制执行统一的 UTF-8 编码策略，确保含有中文（GBK/UTF-8）的日志输出清晰准确。',
   },
   {
     icon: CircleStackIcon,
     color: 'text-violet-500',
     bg: 'bg-violet-500/10',
-    title: 'Background Metrics Poller',
-    description: 'Server-side poller samples connected remote servers every 30s regardless of which page you are on.',
+    title: '🔒 敏感连接数据安全补丁',
+    description: '修复了远程连接凭证配置文件误传的漏洞，保护您的服务器资产与凭证绝对安全。',
   },
   {
     icon: ClockIcon,
     color: 'text-orange-500',
     bg: 'bg-orange-500/10',
-    title: '30-Day Retention',
-    description: 'Historical metrics auto-purge after 30 days to keep the database lean. Downsampling kicks in beyond 500 points.',
+    title: '🔌 极速同步与状态锁机制 (v1.8.4)',
+    description: '支持中文进程日志路径模糊匹配、毫秒级侧边栏状态同步、断开连接时自动加锁防止意外重连。',
   },
 ];
 
@@ -129,12 +129,12 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, darkMode }
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className={`text-sm font-bold ${textPri}`}>What's New</h2>
+                  <h2 className={`text-sm font-bold ${textPri}`}>新版本特性</h2>
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-500 border border-violet-500/25 leading-none">
                     v{VERSION}
                   </span>
                 </div>
-                <p className={`text-[11px] mt-0.5 ${textMuted}`}>EZ PM2 GUI · April 2026</p>
+                <p className={`text-[11px] mt-0.5 ${textMuted}`}>PM2 Web Manager 中文增强版</p>
               </div>
             </div>
             <button
@@ -177,14 +177,14 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, darkMode }
               darkMode ? 'text-neutral-400 hover:text-neutral-200' : 'text-neutral-500 hover:text-neutral-700'
             }`}
           >
-            Full changelog
+            完整更新日志
             <ArrowRightIcon className="h-3 w-3" />
           </Link>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold transition-colors"
           >
-            Got it
+            知道了
           </button>
         </div>
 
